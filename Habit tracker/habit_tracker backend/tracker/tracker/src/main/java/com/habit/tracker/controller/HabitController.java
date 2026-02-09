@@ -31,4 +31,9 @@ public class HabitController {
     public List<habit> getUserHabits(@PathVariable Long userId) {
         return habitService.getHabitsByUserId(userId);
     }
-}
+
+    @GetMapping("/ping")
+    public String ping() {
+       return "pong"; // 🏓 Instant reply, no database needed!
+    }
+} 
