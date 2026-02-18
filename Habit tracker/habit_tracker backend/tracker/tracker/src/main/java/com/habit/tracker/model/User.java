@@ -2,6 +2,7 @@ package com.habit.tracker.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import com.fasterxml.jackson.annotation.JsonProperty; // For Mapping json since flutter needs User_id and lombok sense only the id
 import java.time.LocalDateTime;
 
 @Entity
@@ -12,6 +13,7 @@ public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "user_id") // MAPPING: Java 'id' = SQL 'user_id' (The real PK)
+    @JsonProperty("user_id")  // 👈 CRITICAL: Tells API to send this as "user_id" to Flutter
     private Long id;
 
     @Column(name= "username", unique = true)
@@ -34,19 +36,5 @@ public class User {
         this.createdAt = LocalDateTime.now();
     }
 
-    // --- GETTERS AND SETTERS ---
-    // (You can generate these in IntelliJ/VS Code: Right Click -> Generate -> Getters and Setters)
-
-    public Long getuser_id() { return id;}
-    public void setuser_id(Long user_id) { this.id = user_id; }
-
-    public String getUsername() { return username; }
-    public void setUsername(String username) { this.username = username; }
-
-    public String getPassword() { return password; }
-    public void setPassword(String password) { this.password = password; }
-    
-    public int getXpScore() { return xpScore; }
-    public void setXpScore(int xpScore) { this.xpScore = xpScore; }
-
+    // no manual getters/setters needed thanks to Lombok's @Data
 }

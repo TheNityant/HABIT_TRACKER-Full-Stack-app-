@@ -26,7 +26,7 @@ public class UserService {
         }
 
         // Logic Check 2: Is the username taken?
-        if (userRepository.findByUsername(user.getUsername()).isPresent()) {
+        if (user!= null) {
             throw new RuntimeException("Username is already taken!");
         }
 
