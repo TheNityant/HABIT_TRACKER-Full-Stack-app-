@@ -29,19 +29,30 @@ public class AuthController {
             return ResponseEntity.status(401).body("Create an account to log in, since the entered credentials are invalid.");
         }
     }
-    // 🆕 ADD THIS: The Register Endpoint
+    // 🆕 UPGRADED: The Register Endpoint
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody User user) {
-        
-        // 1. Check if the username is already taken
-        if (userRepository.findByUsername(user.getUsername()) != null) {
-            return ResponseEntity.status(400).body("Username is already taken");
-        }
+        try {
+            // 1. Check if the username is already taken
+            if (userRepository.findByUsername(user.getUsername()) != null) {
+                return ResponseEntity.status(400).body("Username is already taken");
+            }
 
-        // 2. Save the new user to the database
-        User savedUser = userRepository.save(user);
-        
-        // 3. Return the saved user (which now includes the auto-generated user_id)
-        return ResponseEntity.ok(savedUser);
+            // 2. THE FIX: Give the database a dummy email if Flutter didn't send one
+            if (user.getEmail() == null || user.getEmail().isEmpty()) {
+                user.setEmail(user.getUsername() + "@test.com");
+            }
+
+            // 3. Save the new user to the database
+            User savedUser = userRepository.save(user);
+            
+            // 4. Return the saved user
+            return ResponseEntity.ok(savedUser);
+
+        } catch (Exception e) {
+            // 🚨 This will print the EXACT database error to your Render logs
+            System.out.println("CRASH REASON: " + e.getMessage());
+            return ResponseEntity.status(500).body("Database Error: " + e.getMessage());
+        }
     }
 }
