@@ -28,7 +28,23 @@ public class TaskService {
         task.setUser(user);
         return taskRepository.save(task);
     }
+    
 
+    public void deleteTask(Long taskId) {
+        taskRepository.deleteById(taskId);
+    }
+
+    public Task toggleTask(Long taskId) {
+        Task task = taskRepository.findById(taskId)
+            .orElseThrow(() -> new RuntimeException("Task not found"));
+            
+        // Flip the boolean (if true make false, if false make true)
+        task.setCompleted(!task.isCompleted());
+        
+        return taskRepository.save(task);
+    }
+
+    
     // GET TASKS
     public List<Task> getTasksByUserId(Long userId) {
         return taskRepository.findByUserId(userId);
