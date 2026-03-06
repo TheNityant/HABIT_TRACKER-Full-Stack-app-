@@ -31,7 +31,13 @@ public class TaskController {
         taskService.deleteTask(taskId);
         return ResponseEntity.ok().body("Task deleted successfully");
     }
-
+    
+    // 🟡 PUT: For your checkbox toggle UI
+    @PutMapping("/{taskId}/toggle")
+    public ResponseEntity<Task> toggleTask(@PathVariable Long taskId) {
+        Task updatedTask = taskService.toggleTask(taskId);
+        return ResponseEntity.ok(updatedTask);
+    }
     
     // GET: Get all tasks
     // http://localhost:8080/api/tasks/5
