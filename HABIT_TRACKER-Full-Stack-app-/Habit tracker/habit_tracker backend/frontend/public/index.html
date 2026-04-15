@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Habit Tracker - Build Better Habits</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div id="messageContainer"></div>
+
+    <div class="container">
+        <!-- LOGIN CONTAINER -->
+        <div id="loginContainer">
+            <div class="login-header">
+                <h1>🎯 Habit Tracker</h1>
+                <p>Build Better Habits, One Day at a Time</p>
+            </div>
+
+            <!-- Login Form -->
+            <div id="loginForm">
+                <div class="form-group">
+                    <label for="loginUsernameInput">Username</label>
+                    <input type="text" id="loginUsernameInput" placeholder="john_doe" autocomplete="username">
+                </div>
+                <div class="form-group">
+                    <label for="loginPasswordInput">Password</label>
+                    <input type="password" id="loginPasswordInput" placeholder="••••••••" autocomplete="current-password">
+                </div>
+                <button id="loginBtn" class="btn btn-primary btn-block">Sign In</button>
+
+                <div class="register-toggle">
+                    Don't have an account?
+                    <button id="registerBtn">Create one</button>
+                </div>
+            </div>
+
+            <!-- Register Form -->
+            <div id="registerForm">
+                <h3>Create Account</h3>
+                <div class="form-group">
+                    <label for="registerUsernameInput">Username *</label>
+                    <input type="text" id="registerUsernameInput" placeholder="john_doe" required>
+                </div>
+                <div class="form-group">
+                    <label for="registerEmailInput">Email (optional)</label>
+                    <input type="email" id="registerEmailInput" placeholder="john@example.com">
+                </div>
+                <div class="form-group">
+                    <label for="registerPasswordInput">Password *</label>
+                    <input type="password" id="registerPasswordInput" placeholder="••••••••" autocomplete="new-password" required>
+                </div>
+                <button id="submitRegisterBtn" class="btn btn-primary btn-block">Create Account</button>
+            </div>
+        </div>
+
+        <!-- DASHBOARD CONTAINER -->
+        <div id="dashboardContainer">
+            <div class="dashboard-header">
+                <div>
+                    <h2>My Habits</h2>
+                </div>
+                <div class="user-info">
+                    <div class="user-name">👤 <span id="userNameDisplay">User</span></div>
+                    <div class="controls">
+                        <button id="addHabitBtn" class="btn btn-primary">+ Add Habit</button>
+                        <button id="logoutBtn" class="btn btn-secondary">Logout</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Add Habit Form -->
+            <div id="addHabitFormContainer">
+                <h3>Create New Habit</h3>
+                <div class="form-group">
+                    <label for="habitNameInput">Habit Title *</label>
+                    <input type="text" id="habitNameInput" placeholder="e.g., Morning Exercise" required>
+                </div>
+                <div class="form-group">
+                    <label for="habitDescInput">Description</label>
+                    <textarea id="habitDescInput" placeholder="Tell us about this habit"></textarea>
+                </div>
+                <div class="form-actions">
+                    <button id="submitHabitBtn" class="btn btn-primary">Create Habit</button>
+                    <button id="cancelHabitBtn" class="btn btn-secondary">Cancel</button>
+                </div>
+            </div>
+
+            <!-- Habits List -->
+            <div id="habitsList"></div>
+        </div>
+
+        <!-- HABIT DETAIL CONTAINER -->
+        <div id="habitDetailContainer">
+            <div class="detail-header">
+                <h2 id="habitDetailName">Habit Name</h2>
+                <p id="habitDetailDescription" style="color: #999; margin-bottom: 15px;"></p>
+                <div class="detail-meta">
+                    <div class="meta-item">
+                        <span class="meta-label">Current Streak</span>
+                        <span class="meta-value" id="habitDetailStreak">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Add Task Form -->
+            <div class="add-task-form">
+                <h3 style="color: #667eea; margin-bottom: 12px;">Add Task</h3>
+                <div class="form-group">
+                    <label for="taskTitleInput">Task Title *</label>
+                    <input type="text" id="taskTitleInput" placeholder="e.g., 30 minute run">
+                </div>
+                <div class="form-group">
+                    <label for="taskDescInput">Description</label>
+                    <input type="text" id="taskDescInput" placeholder="Any additional notes">
+                </div>
+                <div class="task-form-actions">
+                    <button class="btn btn-primary" onclick="app.handleAddTask()">Add Task</button>
+                    <button id="backToDashboardBtn" class="btn btn-secondary">Back to Dashboard</button>
+                </div>
+            </div>
+
+            <!-- Tasks List -->
+            <div style="margin-top: 20px;">
+                <h3 style="color: #333; margin-bottom: 15px;">Tasks</h3>
+                <div id="tasksList"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/js/api-config.js"></script>
+    <script src="/js/api-client.js"></script>
+    <script src="/js/api-manager.js"></script>
+    <script src="/js/app.js"></script>
+</body>
+</html>

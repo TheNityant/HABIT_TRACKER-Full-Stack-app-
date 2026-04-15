@@ -1,0 +1,17 @@
+{
+  "name": "habit-tracker-frontend",
+  "version": "1.0.0",
+  "description": "Habit Tracker Frontend - JavaScript",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": ["habit", "tracker"],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5"
+  }
+}
