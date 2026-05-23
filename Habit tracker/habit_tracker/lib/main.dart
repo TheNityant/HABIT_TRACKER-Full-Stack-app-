@@ -1,44 +1,49 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:provider/provider.dart'; // <--- NEW IMPORT
-import 'services/habit_provider.dart'; // <--- NEW IMPORT
-import 'screens/main_scaffold.dart'; // For graph and plots
-void main() {
-  runApp(
-    // WRAPPING THE APP
-    // We wrap the root widget so the Provider is available everywhere.
-    MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => HabitProvider()),
-      ],
-      child: const HabitTrackerApp(),
-    ),
-  );
+import 'package:shared_preferences/shared_preferences.dart'; // 🟢 Import this
+import 'package:habit_tracker/screens/login_screen.dart';
+import 'package:habit_tracker/screens/main_scaffold.dart';
+import 'package:flutter/foundation.dart'; // 🟢 Required for kDebugMode
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  final prefs = await SharedPreferences.getInstance();
+  
+  // 🟢 SMART AMNESIA:
+  // If you are debugging (pressing F5 or 'flutter run'), it wipes the vault.
+  // If you build the actual app later, it ignores this block entirely.
+  if (kDebugMode) {
+    await prefs.clear();
+  }
+
+  final savedUserId = prefs.getInt('userId');
+  final savedUsername = prefs.getString('username');
+
+  runApp(MyApp(
+    initialUserId: savedUserId,
+    initialUsername: savedUsername,
+  ));
 }
 
-class HabitTrackerApp extends StatelessWidget {
-  const HabitTrackerApp({super.key});
+class MyApp extends StatelessWidget {
+  final int? initialUserId;
+  final String? initialUsername;
+
+  const MyApp({super.key, this.initialUserId, this.initialUsername});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      debugShowCheckedModeBanner: false,
       title: 'Habit Tracker',
       theme: ThemeData(
-        brightness: Brightness.dark,
-        primarySwatch: Colors.indigo,
-        scaffoldBackgroundColor: const Color(0xFF121212),
-        colorScheme: const ColorScheme.dark(
-          primary: Colors.indigoAccent,
-          secondary: Colors.tealAccent,
-          surface: Color(0xFF1E1E1E),
-        ),
-        textTheme: GoogleFonts.interTextTheme(
-          Theme.of(context).textTheme.apply(bodyColor: Colors.white),
-        ),
-        useMaterial3: true,
+        // ... keep whatever theme code you already had here ...
       ),
-      home: const MainScaffold(), // <-- Change this from HomeScreen()
+      // 🟢 4. The Magic Routing Logic
+      // If we found an ID and Name, bypass login and go straight to MainScaffold!
+      // Otherwise, go to the LoginScreen.
+      home: (initialUserId != null && initialUsername != null)
+          ? MainScaffold(userId: initialUserId!, username: initialUsername!)
+          : const LoginScreen(),
     );
   }
 }
+

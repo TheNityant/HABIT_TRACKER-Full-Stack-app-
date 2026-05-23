@@ -3,32 +3,81 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 
 class ApiService {
-  // 1. SMART ADDRESS
-  static String get baseUrl {
-  if (Platform.isAndroid) {
-    // THIS IS THE CORRECT USB IP
-    return "http://10.238.176.153:8080/api"; 
-  } else {
-    return "http://localhost:8080/api";
-  }
-}
+  // 🟢 UPDATED: Points to your live Render backend
+  static const String baseUrl = "https://habit-tracker-backend-o9bs.onrender.com/api";
 
-  // --- HABITS (Keep this as is) ---
+  // ==========================================
+  // 1. AUTHENTICATION (FIXES LOGINSCREEN ERRORS)
+  // ==========================================
+  
+  static Future<Map<String, dynamic>?> login(String username, String password) async {
+    final url = Uri.parse('$baseUrl/auth/login');
+    try {
+      final response = await http.post(
+        url,
+        headers: {"Content-Type": "application/json"},
+        body: json.encode({"username": username, "password": password}),
+      );
+
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      } else {
+        print("Login Failed: ${response.statusCode}");
+        return null; 
+      }
+    } catch (e) {
+      print("Network Error: $e");
+      return null;
+    }
+  }
+
+  static Future<Map<String, dynamic>?> register(String username, String password) async {
+    final url = Uri.parse('$baseUrl/auth/register');
+    try {
+      final response = await http.post(
+        url,
+        headers: {"Content-Type": "application/json"},
+        body: json.encode({"username": username, "password": password}),
+      );
+
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      } else {
+        print("Registration Failed: ${response.body}");
+        return null;
+      }
+    } catch (e) {
+      print("Network Error: $e");
+      return null;
+    }
+  }
+
+  // ==========================================
+  // 2. HABITS & TASKS
+  // ==========================================
+
   static Future<List<dynamic>> getHabits(int userId) async {
     final url = Uri.parse('$baseUrl/habits/$userId');
     try {
       final response = await http.get(url);
-      if (response.statusCode == 200) {
-        return json.decode(response.body);
-      } else {
-        throw Exception("Failed to load habits");
-      }
+      if (response.statusCode == 200) return json.decode(response.body);
+      return [];
     } catch (e) {
-      print("Network Error (Habits): $e");
       return [];
     }
   }
 
+  static Future<List<dynamic>> getTasks(int userId) async {
+    final url = Uri.parse('$baseUrl/tasks/$userId');
+    try {
+      final response = await http.get(url);
+      if (response.statusCode == 200) return json.decode(response.body);
+      return [];
+    } catch (e) {
+      return [];
+    }
+  }
+  
   static Future<void> addHabit(int userId, String title, String description) async {
     final url = Uri.parse('$baseUrl/habits/$userId');
     final Map<String, dynamic> data = {
@@ -49,44 +98,57 @@ class ApiService {
     }
   }
 
-  // --- NEW: TASKS SECTION ---
 
-  // 1. GET TASKS
-  static Future<List<dynamic>> getTasks(int userId) async {
-    final url = Uri.parse('$baseUrl/tasks/$userId');
-    try {
-      final response = await http.get(url);
-      if (response.statusCode == 200) {
-        return json.decode(response.body);
-      } else {
-        throw Exception("Failed to load tasks");
-      }
-    } catch (e) {
-      print("Network Error (Tasks): $e");
-      return [];
-    }
-  }
-
-  // 2. ADD TASK
   static Future<void> addTask(int userId, String title, String priority, String category) async {
     final url = Uri.parse('$baseUrl/tasks/$userId');
-    
-    final Map<String, dynamic> data = {
-      "title": title,
-      "priority": priority,
-      "category": category,
-      "isCompleted": false // Default to false
-    };
-
     try {
       await http.post(
         url,
         headers: {"Content-Type": "application/json"},
-        body: json.encode(data),
+        body: json.encode({
+          "title": title,
+          "priority": priority,
+          "category": category,
+          "completed": false
+        }),
       );
     } catch (e) {
-      print("Error adding task: $e");
       rethrow;
     }
   }
+
+  // 🔴 MISSING METHODS NEEDED BY PROVIDER
+  static Future<bool> toggleTask(int taskId) async {
+    final url = Uri.parse('$baseUrl/tasks/$taskId/toggle');
+    try {
+      final response = await http.put(url);
+      return response.statusCode == 200;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  static Future<bool> deleteTask(int taskId) async {
+    final url = Uri.parse('$baseUrl/tasks/$taskId');
+    try {
+      final response = await http.delete(url);
+      return response.statusCode == 200;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  static Future<bool> checkInHabit(int habitId) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/habits/$habitId/checkin'), // Adjust to match your exact Spring Boot endpoint
+        headers: {'Content-Type': 'application/json'},
+      );
+      return response.statusCode == 200 || response.statusCode == 201;
+    } catch (e) {
+      print("Error checking in habit: $e");
+      return false;
+    }
+  }
+  
 }

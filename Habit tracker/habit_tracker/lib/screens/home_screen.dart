@@ -3,7 +3,16 @@ import '../services/api_service.dart';
 import '../utils/habit_categories.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  // 1. Define the variables
+  final int userId;
+  final String username;
+
+  // 2. Require them in the constructor
+  const HomeScreen({
+    super.key, 
+    required this.userId, 
+    required this.username
+  });
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -132,15 +141,37 @@ class _HomeScreenState extends State<HomeScreen> {
         color: const Color(0xFF1E1E1E),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         child: ListTile(
-          leading: Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(color: Colors.indigoAccent.withOpacity(0.15), borderRadius: BorderRadius.circular(10)),
-            child: const Icon(Icons.loop, color: Colors.indigoAccent, size: 24),
+            // 🟢 NEW: Make the habit tappable to log a completion for today!
+            onTap: () async {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text("Checking in..."), duration: Duration(seconds: 1)),
+              );
+              
+              bool success = await ApiService.checkInHabit(habitJson['id']);
+              
+              if (success) {
+                _refreshData(); // Reloads the habits to show the new streak number!
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text("🔥 Awesome! Checked in for $title")),
+                );
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("Could not check in (Maybe already done today?)")),
+                );
+              }
+            },
+            leading: Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: Colors.indigoAccent.withOpacity(0.15), 
+                borderRadius: BorderRadius.circular(10)
+              ),
+              child: const Icon(Icons.loop, color: Colors.indigoAccent, size: 24),
+            ),
+            title: Text(title, style: const TextStyle(color: Colors.white)),
+            subtitle: Text(description, style: TextStyle(color: Colors.grey[600], fontSize: 12)),
+            trailing: Text("🔥 $streak", style: const TextStyle(color: Colors.orange)),
           ),
-          title: Text(title, style: const TextStyle(color: Colors.white)),
-          subtitle: Text(description, style: TextStyle(color: Colors.grey[600], fontSize: 12)),
-          trailing: Text("🔥 $streak", style: const TextStyle(color: Colors.orange)),
-        ),
       ),
     );
   }
@@ -151,32 +182,68 @@ class _HomeScreenState extends State<HomeScreen> {
     final String priority = taskJson['priority'] ?? "Medium";
     final String category = taskJson['category'] ?? "Work";
     final bool isDone = taskJson['completed'] ?? taskJson['isCompleted'] ?? false;
+    
+    // 🟢 1. We must extract the Task ID to tell the database which one to update
+    final int taskId = taskJson['id']; 
 
     Color priorityColor = priority == 'High' ? Colors.redAccent : (priority == 'Medium' ? Colors.orangeAccent : Colors.greenAccent);
 
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-      child: Card(
-        color: const Color(0xFF1E1E1E),
-        shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-            side: BorderSide(color: priorityColor.withOpacity(0.5), width: 1)
-        ),
-        child: ListTile(
-          leading: Icon(HabitCategories.getIcon(category), color: HabitCategories.getColor(category)),
-          title: Text(title, style: TextStyle(color: isDone ? Colors.grey : Colors.white, decoration: isDone ? TextDecoration.lineThrough : null)),
-          subtitle: Text("$priority Priority • $category", style: TextStyle(color: Colors.grey[500], fontSize: 11)),
-          trailing: Checkbox(
-            value: isDone,
-            activeColor: priorityColor,
-            onChanged: (val) {
-               ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Task Toggle API coming next!")));
-            },
+    // 🟢 2. Wrap the Container in a Dismissible for the swipe-to-delete gesture
+    return Dismissible(
+      key: Key(taskId.toString()), 
+      direction: DismissDirection.endToStart, // Swipe right to left
+      
+      // The red trash background that reveals on swipe
+      background: Container(
+        color: Colors.redAccent,
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.symmetric(horizontal: 20.0),
+        child: const Icon(Icons.delete_outline, color: Colors.white, size: 30),
+      ),
+      
+      // 🟢 3. Trigger the Delete API when swiped
+      onDismissed: (direction) async {
+        try {
+          await ApiService.deleteTask(taskId);
+          _refreshData(); // Reload the list from the cloud
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("$title deleted")));
+        } catch (e) {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Failed to delete task")));
+          _refreshData(); // Refresh to snap the card back if the DB failed
+        }
+      },
+      
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+        child: Card(
+          color: const Color(0xFF1E1E1E),
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+              side: BorderSide(color: priorityColor.withOpacity(0.5), width: 1)
+          ),
+          child: ListTile(
+            leading: Icon(HabitCategories.getIcon(category), color: HabitCategories.getColor(category)),
+            title: Text(title, style: TextStyle(color: isDone ? Colors.grey : Colors.white, decoration: isDone ? TextDecoration.lineThrough : null)),
+            subtitle: Text("$priority Priority • $category", style: TextStyle(color: Colors.grey[500], fontSize: 11)),
+            trailing: Checkbox(
+              value: isDone,
+              activeColor: priorityColor,
+              // 🟢 4. Trigger the Toggle API when tapped (Replaced the placeholder)
+              onChanged: (val) async {
+                try {
+                  await ApiService.toggleTask(taskId);
+                  _refreshData(); // Reload the list to show the strike-through
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Failed to toggle task")));
+                }
+              },
+            ),
           ),
         ),
       ),
     );
   }
+  
 
   Widget _buildSectionHeader(String title) {
     return Padding(
