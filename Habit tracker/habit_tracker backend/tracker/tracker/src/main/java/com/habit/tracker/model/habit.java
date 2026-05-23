@@ -4,11 +4,13 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.time.LocalDateTime;
-
+import java.time.LocalDate; // 🟢 Added
+import java.util.List;      // 🟢 Added
+import java.util.ArrayList; // 🟢 Added
 
 @Entity
 @Table(name = "habits")
-@Data
+@Data // This automatically creates getCompletedDates() for you!
 public class habit {
 
     @Id
@@ -27,11 +29,17 @@ public class habit {
     @Column(name = "created_at", updatable = false) // SQL: created_at
     private LocalDateTime createdAt;
 
+    // 🟢 ADDED: This creates the join table we talked about!
+    @ElementCollection
+    @CollectionTable(name = "habit_completed_dates", joinColumns = @JoinColumn(name = "habit_id"))
+    @Column(name = "completed_date")
+    private List<LocalDate> completedDates = new ArrayList<>();
+
     // --- THE RELATIONSHIP ---
     // This tells Java: "Use the 'user_id' column in THIS table to find the User."
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
-    @JsonIgnore // <--- Add this here too!
+    @JsonIgnore // Prevents infinite JSON loops
     private User user;
 
     @PrePersist

@@ -3,6 +3,7 @@ package com.habit.tracker.controller;
 import com.habit.tracker.model.habit;
 import com.habit.tracker.service.HabitService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -32,7 +33,18 @@ public class HabitController {
     public List<habit> getUserHabits(@PathVariable Long userId) {
         return habitService.getHabitsByUserId(userId);
     }
-
+    
+    // FEATURE: Check-in a habit
+    @PostMapping("/{id}/checkin")
+    public ResponseEntity<?> checkInHabit(@PathVariable Long id) {
+        try {
+            habit updatedHabit = habitService.checkInHabit(id);
+            return ResponseEntity.ok(updatedHabit);
+        } catch (RuntimeException e) {
+            // Returns a 400 Bad Request if already checked in today
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
     @GetMapping("/ping")
     public String ping() {
        return "pong"; // 🏓 Instant reply, no database needed!
