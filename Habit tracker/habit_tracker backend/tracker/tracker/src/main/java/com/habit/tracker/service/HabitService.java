@@ -57,4 +57,8 @@ public class HabitService {
         // 5. Save back to DB
         return habitRepository.save(existingHabit);
     }
+
+    public void deleteHabit(Long habitId) {
+        habitRepository.deleteById(habitId);
+    }
 }

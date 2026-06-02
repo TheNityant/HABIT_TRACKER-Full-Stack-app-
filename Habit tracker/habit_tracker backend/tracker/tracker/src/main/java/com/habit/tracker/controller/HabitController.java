@@ -49,4 +49,14 @@ public class HabitController {
     public String ping() {
        return "pong"; // 🏓 Instant reply, no database needed!
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteHabit(@PathVariable Long id) {
+        try {
+            habitService.deleteHabit(id);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
 } 
