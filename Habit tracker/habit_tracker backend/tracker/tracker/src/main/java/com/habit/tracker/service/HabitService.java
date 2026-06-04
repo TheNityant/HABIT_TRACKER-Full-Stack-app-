@@ -61,4 +61,17 @@ public class HabitService {
     public void deleteHabit(Long habitId) {
         habitRepository.deleteById(habitId);
     }
+
+    public void updateHabit(Long id, habit updatedHabit) {
+        // Find the existing habit
+        habit existingHabit = habitRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Habit not found"));
+        
+        // Update the fields
+        existingHabit.setTitle(updatedHabit.getTitle());
+        existingHabit.setDescription(updatedHabit.getDescription());
+        
+        // Save the changes
+        habitRepository.save(existingHabit);
+    }
 }

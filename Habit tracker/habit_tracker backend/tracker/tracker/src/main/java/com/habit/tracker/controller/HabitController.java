@@ -59,4 +59,15 @@ public class HabitController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+
+    // Edit a Habit
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updateHabit(@PathVariable Long id, @RequestBody habit updatedHabit) {
+        try {
+            habitService.updateHabit(id, updatedHabit); // 🟢 Uses the Service now!
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Failed to update habit");
+        }
+    }
 } 

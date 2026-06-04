@@ -46,4 +46,15 @@ public class TaskController {
     public List<Task> getUserTasks(@PathVariable Long userId) {
         return taskService.getTasksByUserId(userId);
     }
+
+    // Edit a Task
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updateTask(@PathVariable Long id, @RequestBody Task updatedTask) {
+        try {
+            taskService.updateTask(id, updatedTask); // 🟢 Uses the Service now!
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Failed to update task");
+        }
+    }
 }

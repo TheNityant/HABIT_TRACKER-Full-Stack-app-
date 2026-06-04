@@ -49,4 +49,18 @@ public class TaskService {
     public List<Task> getTasksByUserId(Long userId) {
         return taskRepository.findByUserId(userId);
     }
+
+    public void updateTask(Long id, Task updatedTask) {
+        // Find the existing task
+        Task existingTask = taskRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Task not found"));
+        
+        // Update the fields
+        existingTask.setTitle(updatedTask.getTitle());
+        existingTask.setPriority(updatedTask.getPriority());
+        existingTask.setCategory(updatedTask.getCategory());
+        
+        // Save the changes
+        taskRepository.save(existingTask);
+    }
 }
