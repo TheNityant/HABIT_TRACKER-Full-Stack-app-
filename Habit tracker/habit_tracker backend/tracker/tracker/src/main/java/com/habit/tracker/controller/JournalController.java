@@ -47,4 +47,15 @@ public class JournalController {
         }
         return ResponseEntity.notFound().build();
     }
+
+    // Edit a Journal/Metric Entry
+    @PutMapping("/{entryId}")
+    public ResponseEntity<?> updateEntry(@PathVariable Long entryId, @RequestBody Journal updatedJournal) {
+        try {
+            journalService.updateJournal(entryId, updatedJournal);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Failed to update log entry");
+        }
+    }
 }

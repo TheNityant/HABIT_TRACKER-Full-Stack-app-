@@ -29,4 +29,14 @@ public class JournalService {
         }
         return false;
     }
+
+    public Journal updateJournal(Long id, Journal updatedJournal) {
+        Journal existingJournal = journalRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Log entry not found"));
+        
+        existingJournal.setContent(updatedJournal.getContent());
+        existingJournal.setDetails(updatedJournal.getDetails());
+        
+        return journalRepository.save(existingJournal);
+    }
 }
