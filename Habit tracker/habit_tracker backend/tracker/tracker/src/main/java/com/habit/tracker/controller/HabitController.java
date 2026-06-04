@@ -36,15 +36,18 @@ public class HabitController {
     
     // FEATURE: Check-in a habit
     @PostMapping("/{id}/checkin")
-    public ResponseEntity<?> checkInHabit(@PathVariable Long id) {
+    public ResponseEntity<?> checkInHabit(
+            @PathVariable Long id, 
+            @RequestParam("date") String date) {
         try {
-            habit updatedHabit = habitService.checkInHabit(id);
+            habit updatedHabit = habitService.checkInHabit(id, date);
             return ResponseEntity.ok(updatedHabit);
-        } catch (RuntimeException e) {
-            // Returns a 400 Bad Request if already checked in today
+        } catch (IllegalStateException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
         }
-    }
+    } 
     @GetMapping("/ping")
     public String ping() {
        return "pong"; // 🏓 Instant reply, no database needed!

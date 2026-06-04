@@ -37,26 +37,26 @@ public class HabitService {
     }
 
     // 🟢 FEATURE: Check-in a habit (Pure Database Logic)
-    public habit checkInHabit(Long habitId) {
-        // 1. Find the habit
-        habit existingHabit = habitRepository.findById(habitId)
-                .orElseThrow(() -> new RuntimeException("Habit not found with ID: " + habitId));
+    public habit checkInHabit(Long habitId, String clientDate) {
+    habit habit = habitRepository.findById(habitId)
+            .orElseThrow(() -> new RuntimeException("Habit not found"));
 
-        // 2. Get today's date
-        LocalDate today = LocalDate.now();
+    // 1. 🟢 Parse the incoming string from Flutter into a native LocalDate object
+    LocalDate localTargetDate = LocalDate.parse(clientDate);
+    
+    // 2. 🟢 Capture it as a List of LocalDate to match your model definition
+    List<LocalDate> completedDates = habit.getCompletedDates();
 
-        // 3. Check if already completed today to prevent duplicates
-        if (existingHabit.getCompletedDates().contains(today)) {
-            throw new RuntimeException("Habit already checked in today!");
-        }
-
-        // 4. Add the date and update the streak
-        existingHabit.getCompletedDates().add(today);
-        existingHabit.setStreakCount(existingHabit.getStreakCount() + 1);
-
-        // 5. Save back to DB
-        return habitRepository.save(existingHabit);
+    // 🟢 Uses the date sent by the phone instead of the server's UTC clock
+    if (completedDates.contains(localTargetDate)) {
+        throw new IllegalStateException("Habit already checked in for today");
     }
+
+    completedDates.add(localTargetDate);
+    habit.setStreakCount(habit.getStreakCount() + 1);
+    
+    return habitRepository.save(habit);
+}
 
     public void deleteHabit(Long habitId) {
         habitRepository.deleteById(habitId);
