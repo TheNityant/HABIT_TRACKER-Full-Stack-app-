@@ -46,4 +46,10 @@ public class habit {
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
     }
+
+    private String category; // 🟢 ADD THIS FIELD
+
+    // --- Add the corresponding Getter and Setter ---
+    public String getCategory() { return category; }
+    public void setCategory(String category) { this.category = category; }
 }
