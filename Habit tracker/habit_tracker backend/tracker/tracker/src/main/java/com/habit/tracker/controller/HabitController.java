@@ -73,4 +73,17 @@ public class HabitController {
             return ResponseEntity.badRequest().body("Failed to update habit");
         }
     }
+
+    @PostMapping("/{id}/toggle")
+    public ResponseEntity<habit> toggleHabitDate(
+            @PathVariable Long id,
+            @RequestParam("targetDate") String targetDate,
+            @RequestParam("clientToday") String clientToday) {
+        try {
+            habit updatedHabit = habitService.toggleHabitDate(id, targetDate, clientToday);
+            return ResponseEntity.ok(updatedHabit);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
 } 

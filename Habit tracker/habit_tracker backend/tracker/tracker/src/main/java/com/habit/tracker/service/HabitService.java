@@ -9,6 +9,8 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class HabitService {
@@ -73,5 +75,52 @@ public class HabitService {
         
         // Save the changes
         habitRepository.save(existingHabit);
+    }
+
+    // 🟢 Toggles any date (past or present) and updates the streak dynamically
+    public habit toggleHabitDate(Long habitId, String targetDateStr, String clientTodayStr) {
+        habit habit = habitRepository.findById(habitId)
+                .orElseThrow(() -> new RuntimeException("Habit not found"));
+
+        LocalDate targetDate = LocalDate.parse(targetDateStr);
+        LocalDate clientToday = LocalDate.parse(clientTodayStr);
+        List<LocalDate> completedDates = habit.getCompletedDates();
+
+        // If it exists, remove it (uncheck). If it doesn't, add it (check-in).
+        if (completedDates.contains(targetDate)) {
+            completedDates.remove(targetDate);
+        } else {
+            completedDates.add(targetDate);
+        }
+
+        // Recalculate streak count based on the entire updated history
+        int updatedStreak = calculateStreak(completedDates, clientToday);
+        habit.setStreakCount(updatedStreak);
+
+        return habitRepository.save(habit);
+    }
+
+    // 🟢 Smart Streak Engine: Counts consecutive days backward from today
+    private int calculateStreak(List<LocalDate> dates, LocalDate today) {
+        if (dates == null || dates.isEmpty()) return 0;
+
+        // Convert to a Set for O(1) high-speed lookups
+        Set<LocalDate> dateSet = dates.stream().collect(Collectors.toSet());
+        int streak = 0;
+        LocalDate checkDate = today;
+
+        // If today hasn't been completed yet, check if yesterday was completed 
+        // to maintain an active streak until the day officially ends.
+        if (!dateSet.contains(checkDate)) {
+            checkDate = checkDate.minusDays(1);
+        }
+
+        // Loop backward day-by-day until a gap is hit
+        while (dateSet.contains(checkDate)) {
+            streak++;
+            checkDate = checkDate.minusDays(1);
+        }
+
+        return streak;
     }
 }
