@@ -2,6 +2,7 @@ package com.habit.tracker.controller;
 
 import com.habit.tracker.model.Journal;
 import com.habit.tracker.service.JournalService;
+import com.habit.tracker.service.AI_Service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,7 +17,8 @@ public class JournalController {
 
     @Autowired
     private JournalService journalService;
-
+    @Autowired
+    private AI_Service AI_Service;
     // 1. GET entries for a user on a specific date
     @GetMapping("/{userId}")
     public ResponseEntity<List<Journal>> getEntries(
@@ -32,10 +34,20 @@ public class JournalController {
     @PostMapping("/{userId}")
     public ResponseEntity<Journal> createEntry(
             @PathVariable Long userId,
-            @RequestBody Journal journal) {
+            @RequestBody Journal incomingJournal) { // Flutter sends raw text in the "content" field
         
-        journal.setUserId(userId);
-        Journal savedEntry = journalService.saveJournal(journal);
+        // 1. Pass the raw text through Gemini
+        Journal smartData = AI_Service.analyzeAndParseEntry(incomingJournal.getContent());
+
+        // 2. Merge the AI's structural intelligence with the user's date/time info
+        incomingJournal.setType(smartData.getType());
+        incomingJournal.setContent(smartData.getContent());
+        incomingJournal.setDetails(smartData.getDetails());
+        incomingJournal.setUserId(userId);
+        
+        // 3. Save the newly structured entry to Postgres
+        Journal savedEntry = journalService.saveJournal(incomingJournal);
+        
         return ResponseEntity.ok(savedEntry);
     }
 
