@@ -48,4 +48,11 @@ public class Journal {
 
     public String getTimeString() { return timeString; }
     public void setTimeString(String timeString) { this.timeString = timeString; }
+
+    // Inside com.habit.tracker.model.Journal.java
+    private String mediaUrl; // 🟢 Add this field
+
+    // Add the getter and setter
+    public String getMediaUrl() { return mediaUrl; }
+    public void setMediaUrl(String mediaUrl) { this.mediaUrl = mediaUrl; }
 }
