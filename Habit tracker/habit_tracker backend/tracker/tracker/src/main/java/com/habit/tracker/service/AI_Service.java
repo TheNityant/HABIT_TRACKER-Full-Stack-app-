@@ -28,18 +28,19 @@ public class AI_Service {
         String apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + apiKey;
 
         // 1. We tell Gemini exactly how to format the data
-        String systemPrompt = "You are an AI for a fitness and habit tracker. Analyze this user text: '" + rawText + "'.\n" +
-                "Classify it strictly as either a 'journal' (thoughts, day summary) or a 'metric' (workout, weight, specific reps/sets).\n" +
-                "Respond ONLY with a raw JSON object (no markdown, no backticks). Format:\n" +
-                "{\n" +
-                "  \"type\": \"journal or metric\",\n" +
-                "  \"content\": \"For journal, polish the text slightly. For metric, just the exercise/metric name (e.g., 'Bench Press').\",\n" +
-                "  \"details\": \"For journal, leave empty. For metric, list the sets/reps/weight (e.g., '180lbs x 5, 5, 5').\"\n" +
-                "}";
+        String promptText = "You are an intelligent 'Second Brain' assistant. " +
+            "The user has provided the following input: '" + rawText + "'. " +
+            "Follow these rules: " +
+            "1. If the input is a command or request (e.g., 'Write a note about X', 'Summarize Y', 'Give me 5 ideas for Z'), you MUST act as an AI assistant, fulfill the request completely, and generate the final content. " +
+            "2. If the input is just a daily log or raw data (e.g., 'Benched 225', 'Feeling tired today'), clean it up, fix the grammar, and format it nicely. " +
+            "3. Analyze the final content and categorize it. " +
+            "Respond ONLY with a valid JSON object containing exactly two keys: " +
+            "'type' (choose either 'journal' for short logs/metrics, or 'notebook' for generated essays/deep thoughts), and " +
+            "'content' (the final generated text or formatted log). Do not include markdown formatting like ```json.";
 
         // 2. Build the exact JSON structure Google's API expects
         Map<String, Object> part = new HashMap<>();
-        part.put("text", systemPrompt);
+        part.put("text", promptText);
         
         Map<String, Object> content = new HashMap<>();
         content.put("parts", List.of(part));
