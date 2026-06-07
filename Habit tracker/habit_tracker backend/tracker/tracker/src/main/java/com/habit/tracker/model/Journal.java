@@ -1,5 +1,5 @@
 package com.habit.tracker.model;
-
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import java.time.LocalDate;
 
@@ -19,7 +19,8 @@ public class Journal {
     private String type; // "journal" or "metric"
     
     private String details; // Stores reps/sets or metrics
-
+    
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate entryDate; // YYYY-MM-DD
 
     private String timeString; // e.g., "08:30 AM"
@@ -42,6 +43,7 @@ public class Journal {
 
     public String getDetails() { return details; }
     public void setDetails(String details) { this.details = details; }
+    
 
     public LocalDate getEntryDate() { return entryDate; }
     public void setEntryDate(LocalDate entryDate) { this.entryDate = entryDate; }
@@ -55,4 +57,6 @@ public class Journal {
     // Add the getter and setter
     public String getMediaUrl() { return mediaUrl; }
     public void setMediaUrl(String mediaUrl) { this.mediaUrl = mediaUrl; }
+
+    
 }

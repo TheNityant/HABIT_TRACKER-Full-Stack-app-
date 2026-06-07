@@ -45,6 +45,9 @@ public class JournalController {
         incomingJournal.setDetails(smartData.getDetails());
         incomingJournal.setUserId(userId);
         
+        if (incomingJournal.getEntryDate() == null) {
+            incomingJournal.setEntryDate(java.time.LocalDate.now()); 
+        }
         // 3. Save the newly structured entry to Postgres
         Journal savedEntry = journalService.saveJournal(incomingJournal);
         
