@@ -25,7 +25,7 @@ public class AI_Service {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     public Journal analyzeAndParseEntry(String rawText) {
-        String apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + apiKey;
+        String apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + apiKey;
 
         // 1. We tell Gemini exactly how to format the data
         String systemPrompt = "You are an AI for a fitness and habit tracker. Analyze this user text: '" + rawText + "'.\n" +
