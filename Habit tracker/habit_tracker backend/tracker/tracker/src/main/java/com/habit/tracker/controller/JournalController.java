@@ -21,6 +21,7 @@ public class JournalController {
     private AI_Service AI_Service;
     // 1. GET entries for a user on a specific date
     @GetMapping("/{userId}")
+    
     public ResponseEntity<List<Journal>> getEntries(
             @PathVariable Long userId,
             @RequestParam("date") String dateStr) {
@@ -44,7 +45,7 @@ public class JournalController {
 
         // 🟢 If AI is requested, parse it. Otherwise, save the raw manual input!
         if (useAi) {
-            Journal smartData = AI_Service.analyzeAndParseEntry(incomingJournal.getContent());
+            Journal smartData = AI_Service.analyzeAndParseEntry(incomingJournal.getContent(), incomingJournal.getMediaUrl());
             incomingJournal.setType(smartData.getType());
             // If the AI thinks it's a metric, use the AI content. Otherwise, keep the original text.
             incomingJournal.setContent(smartData.getContent());

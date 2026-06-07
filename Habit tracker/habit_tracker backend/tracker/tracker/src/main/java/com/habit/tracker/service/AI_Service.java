@@ -1,86 +1,118 @@
-package com.habit.tracker.service;
+package com.habit.tracker.service; // Verify this matches your package name!
 
+import com.habit.tracker.model.Journal;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.habit.tracker.model.Journal;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.io.InputStream;
+import java.net.URL;
+import java.util.Base64;
 
 @Service
 public class AI_Service {
 
-    // Pulls your secret key from application.properties
     @Value("${gemini.api.key}")
     private String apiKey;
 
     private final RestTemplate restTemplate = new RestTemplate();
-    private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public Journal analyzeAndParseEntry(String rawText) {
+    // 🟢 1. The Main Vision & Text Method
+    public Journal analyzeAndParseEntry(String userInput, String mediaUrl) {
         String apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + apiKey;
 
-        // 1. We tell Gemini exactly how to format the data
         String promptText = "You are an intelligent 'Second Brain' assistant. " +
-            "The user has provided the following input: '" + rawText + "'. " +
-            "Follow these rules: " +
-            "1. If the input is a command or request (e.g., 'Write a note about X', 'Summarize Y', 'Give me 5 ideas for Z'), you MUST act as an AI assistant, fulfill the request completely, and generate the final content. " +
-            "2. If the input is just a daily log or raw data (e.g., 'Benched 225', 'Feeling tired today'), clean it up, fix the grammar, and format it nicely. " +
-            "3. Analyze the final content and categorize it. " +
+            "The user has provided the following text: '" + userInput + "'. " +
+            "If an image is attached, analyze the image context alongside the text. " +
+            "1. If it's a command ('Write a note about X', 'Summarize this photo'), generate the requested content. " +
+            "2. If it's a raw log ('Benched 225', 'Here is my meal'), format it nicely. " +
             "Respond ONLY with a valid JSON object containing exactly two keys: " +
-            "'type' (choose either 'journal' for short logs/metrics, or 'notebook' for generated essays/deep thoughts), and " +
-            "'content' (the final generated text or formatted log). Do not include markdown formatting like ```json.";
-
-        // 2. Build the exact JSON structure Google's API expects
-        Map<String, Object> part = new HashMap<>();
-        part.put("text", promptText);
-        
-        Map<String, Object> content = new HashMap<>();
-        content.put("parts", List.of(part));
-        
-        Map<String, Object> requestBody = new HashMap<>();
-        requestBody.put("contents", List.of(content));
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        HttpEntity<Map<String, Object>> request = new HttpEntity<>(requestBody, headers);
+            "'type' (either 'journal' or 'notebook') and 'content' (the final text).";
 
         try {
-            // 3. Send the request to Google
-            String responseStr = restTemplate.postForObject(apiUrl, request, String.class);
-            
-            // 4. Drill down into Google's response to get the text we care about
-            JsonNode rootNode = objectMapper.readTree(responseStr);
-            String aiJsonString = rootNode.path("candidates").get(0)
-                                          .path("content").path("parts").get(0)
-                                          .path("text").asText();
+            ObjectMapper mapper = new ObjectMapper();
+            ObjectNode root = mapper.createObjectNode();
+            ArrayNode contents = root.putArray("contents");
+            ObjectNode contentObj = contents.addObject();
+            ArrayNode parts = contentObj.putArray("parts");
 
-            // 5. Clean any accidental markdown and map it to a temporary Journal object
-            aiJsonString = aiJsonString.replace("```json", "").replace("```", "").trim();
-            JsonNode parsedData = objectMapper.readTree(aiJsonString);
+            // Attach the text prompt
+            parts.addObject().put("text", promptText);
 
-            Journal smartJournal = new Journal();
-            smartJournal.setType(parsedData.path("type").asText("journal"));
-            smartJournal.setContent(parsedData.path("content").asText(rawText));
-            smartJournal.setDetails(parsedData.path("details").asText(""));
-            
-            return smartJournal;
+            // Attach the image if it exists
+            if (mediaUrl != null && !mediaUrl.isEmpty()) {
+                String fullUrl = mediaUrl.startsWith("http") ? mediaUrl : "https://habit-tracker-backend-o9bs.onrender.com" + mediaUrl;
+                
+                try (InputStream is = new URL(fullUrl).openStream()) {
+                    byte[] imageBytes = is.readAllBytes();
+                    String base64Image = Base64.getEncoder().encodeToString(imageBytes);
+                    String mimeType = fullUrl.toLowerCase().endsWith(".png") ? "image/png" : "image/jpeg";
+
+                    ObjectNode inlineData = mapper.createObjectNode();
+                    inlineData.put("mimeType", mimeType);
+                    inlineData.put("data", base64Image);
+                    parts.addObject().set("inlineData", inlineData);
+                } catch (Exception e) {
+                    System.out.println("⚠️ Could not fetch image for AI Vision: " + e.getMessage());
+                }
+            }
+
+            // Send to Google
+            String requestBody = mapper.writeValueAsString(root);
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            HttpEntity<String> entity = new HttpEntity<>(requestBody, headers);
+
+            ResponseEntity<String> response = restTemplate.postForEntity(apiUrl, entity, String.class);
+
+            return extractJournalFromJson(response.getBody()); 
 
         } catch (Exception e) {
-            // If the AI is down or fails, we fail gracefully by saving exactly what the user typed.
-            System.err.println("AI Parsing Failed. Falling back to raw text. Error: " + e.getMessage());
+            e.printStackTrace();
             Journal fallback = new Journal();
             fallback.setType("journal");
-            fallback.setContent(rawText);
-            fallback.setDetails("");
+            fallback.setContent(userInput);
             return fallback;
         }
+    }
+
+    // 🟢 2. The JSON Extractor Helper Method
+    private Journal extractJournalFromJson(String geminiResponse) {
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode rootNode = mapper.readTree(geminiResponse);
+            
+            JsonNode candidates = rootNode.path("candidates");
+            if (candidates.isArray() && candidates.size() > 0) {
+                JsonNode parts = candidates.get(0).path("content").path("parts");
+                if (parts.isArray() && parts.size() > 0) {
+                    String aiTextResponse = parts.get(0).path("text").asText();
+                    
+                    aiTextResponse = aiTextResponse.replaceAll("```json", "").replaceAll("```", "").trim();
+                    JsonNode aiJsonNode = mapper.readTree(aiTextResponse);
+                    
+                    Journal parsedJournal = new Journal();
+                    parsedJournal.setType(aiJsonNode.path("type").asText("journal")); 
+                    parsedJournal.setContent(aiJsonNode.path("content").asText(aiTextResponse)); 
+                    
+                    return parsedJournal;
+                }
+            }
+        } catch (Exception e) {
+            System.out.println("⚠️ Error parsing AI response: " + e.getMessage());
+        }
+        
+        Journal fallback = new Journal();
+        fallback.setType("journal");
+        fallback.setContent("Media saved, but AI parsing failed.");
+        return fallback;
     }
 }
