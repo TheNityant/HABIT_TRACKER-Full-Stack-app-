@@ -34,23 +34,30 @@ public class JournalController {
     @PostMapping("/{userId}")
     public ResponseEntity<Journal> createEntry(
             @PathVariable Long userId,
-            @RequestBody Journal incomingJournal) { // Flutter sends raw text in the "content" field
+            @RequestParam(defaultValue = "true") boolean useAi, // 🟢 ADD THIS
+            @RequestBody Journal incomingJournal) { 
         
-        // 1. Pass the raw text through Gemini
-        Journal smartData = AI_Service.analyzeAndParseEntry(incomingJournal.getContent());
-
-        // 2. Merge the AI's structural intelligence with the user's date/time info
-        incomingJournal.setType(smartData.getType());
-        incomingJournal.setContent(smartData.getContent());
-        incomingJournal.setDetails(smartData.getDetails());
         incomingJournal.setUserId(userId);
-        
         if (incomingJournal.getEntryDate() == null) {
             incomingJournal.setEntryDate(java.time.LocalDate.now()); 
         }
-        // 3. Save the newly structured entry to Postgres
-        Journal savedEntry = journalService.saveJournal(incomingJournal);
+
+        // 🟢 If AI is requested, parse it. Otherwise, save the raw manual input!
+        if (useAi) {
+            Journal smartData = AI_Service.analyzeAndParseEntry(incomingJournal.getContent());
+            incomingJournal.setType(smartData.getType());
+            // If the AI thinks it's a metric, use the AI content. Otherwise, keep the original text.
+            incomingJournal.setContent(smartData.getContent());
+            incomingJournal.setDetails(smartData.getDetails());
+        } else {
+            // Keep exactly what the user typed in manual mode
+            if(incomingJournal.getType() == null || incomingJournal.getType().isEmpty()) {
+                incomingJournal.setType("journal"); // fallback
+            }
+            incomingJournal.setDetails("");
+        }
         
+        Journal savedEntry = journalService.saveJournal(incomingJournal);
         return ResponseEntity.ok(savedEntry);
     }
 
