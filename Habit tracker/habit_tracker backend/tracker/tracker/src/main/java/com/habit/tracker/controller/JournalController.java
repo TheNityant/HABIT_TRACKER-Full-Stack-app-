@@ -40,7 +40,8 @@ public class JournalController {
         
         incomingJournal.setUserId(userId);
         if (incomingJournal.getEntryDate() == null) {
-            incomingJournal.setEntryDate(java.time.LocalDate.now()); 
+          // Changed LocalDate to LocalDateTime
+        incomingJournal.setEntryDate(java.time.LocalDateTime.now()); 
         }
 
         // 🟢 If AI is requested, parse it. Otherwise, save the raw manual input!
