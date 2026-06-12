@@ -57,7 +57,7 @@ HABIT_TRACKER-Full-Stack-app-/
     │       ├── pom.xml              # Maven dependencies
     │       └── Dockerfile           # Docker configuration
     │
-    └── This is the Comprehensive Master Documentation...docx # In-depth backend docs
+    └── Spring-Boot-Backend-Documentation.docx # In-depth backend docs
 ```
 
 ## 🚀 Getting Started
@@ -77,7 +77,7 @@ HABIT_TRACKER-Full-Stack-app-/
    ```properties
    spring.datasource.url=jdbc:postgresql://localhost:5432/habittracker
    spring.datasource.username=your_username
-   spring.datasource.******
+   spring.datasource.pass=YOUR_DB_PASS
    spring.jpa.hibernate.ddl-auto=update
    ```
 3. Build and run the Spring Boot application:
@@ -104,7 +104,7 @@ HABIT_TRACKER-Full-Stack-app-/
 ## 📚 Documentation
 
 For a deep dive into the backend architecture, endpoints, and design decisions, please refer to the comprehensive documentation provided in the repository:
-* `Habit tracker/This is the Comprehensive Master Documentation for your Spring Boot Backend.docx`
+* `Habit tracker/Spring-Boot-Backend-Documentation.docx`
 
 ## 🤝 Contributing
 
