@@ -77,7 +77,7 @@ HABIT_TRACKER-Full-Stack-app-/
    ```properties
    spring.datasource.url=jdbc:postgresql://localhost:5432/habittracker
    spring.datasource.username=your_username
-   spring.datasource.pass=YOUR_DB_PASS
+   spring.datasource.password=YOUR_DB_PASS
    spring.jpa.hibernate.ddl-auto=update
    ```
 3. Build and run the Spring Boot application:
