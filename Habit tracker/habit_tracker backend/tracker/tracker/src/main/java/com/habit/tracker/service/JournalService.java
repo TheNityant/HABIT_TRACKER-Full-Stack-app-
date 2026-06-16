@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -14,8 +15,8 @@ public class JournalService {
     @Autowired
     private JournalRepository journalRepository;
 
-    public List<Journal> getJournalsByDate(Long userId, LocalDate date) {
-        return journalRepository.findByUserIdAndEntryDateOrderByIdAsc(userId, date);
+    public List<Journal> getJournalsByDate(Long userId, LocalDateTime startOfDay, LocalDateTime endOfDay) {
+        return journalRepository.findByUserIdAndEntryDateBetweenOrderByIdAsc(userId, startOfDay, endOfDay);
     }
 
     public Journal saveJournal(Journal journal) {
