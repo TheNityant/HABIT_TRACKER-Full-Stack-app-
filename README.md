@@ -1,4 +1,4 @@
-# 🌟 HABIT_TRACKER Full-Stack App
+# 🌟 HABIT_TRACKER_Full_Stack_App
 
 A full-stack habit tracking application with:
 
