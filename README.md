@@ -12,7 +12,7 @@ A full-stack habit tracking application with:
 ## 📌 Project Structure
 
 ```text
-HABIT_TRACKER-Full-Stack-app/
+HABIT_TRACKER_Full_Stack_app/
 └── Habit tracker/
     ├── habit_tracker/                       # Flutter app
     └── habit_tracker backend/
