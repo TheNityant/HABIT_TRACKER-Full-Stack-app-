@@ -1,6 +1,6 @@
 # 🌟 HABIT_TRACKER_Full_Stack_App
 
-A full-stack habit tracking application with:
+A cross-platform habit and task management application with cloud-backed persistence, analytics, journaling, and AI-assisted journal parsing.
 
 - **Frontend:** Flutter (mobile + desktop/web targets)
 - **Backend:** Spring Boot REST API
